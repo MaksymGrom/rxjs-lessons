@@ -3,15 +3,36 @@ import {debounceTime, distinctUntilChanged, map} from 'rxjs/operators';
 
 // const search$ = new Observable<Event>(observer => {
 //   const search = document.getElementById('search');
+//   const stop = document.getElementById('stop');
 //
-//   if (!search) {
+//   if (!search || !stop) {
 //     observer.error('Element does not exist on the page');
 //     return;
 //   }
-//
-//   search.addEventListener('input', event => {
+//   const onSearch = event => {
+//     checkSubscription();
 //     observer.next(event);
-//   });
+//   };
+//
+//   const onStop = event => {
+//     checkSubscription();
+//     observer.complete();
+//     clear();
+//   };
+//
+//   search.addEventListener('input', onSearch);
+//   stop.addEventListener('click', onStop);
+//
+//   const checkSubscription = () => {
+//     if (observer.closed) {
+//       clear();
+//     }
+//   };
+//
+//   const clear = () => {
+//     search.removeEventListener('input', onSearch);
+//     stop.removeEventListener('click', onStop);
+//   };
 // });
 
 const search$: Observable<Event> = fromEvent<Event>(
@@ -19,7 +40,12 @@ const search$: Observable<Event> = fromEvent<Event>(
   'input'
 );
 
-search$.pipe(
+const stop$: Observable<Event> = fromEvent<Event>(
+  document.getElementById('stop'),
+  'click'
+);
+
+const searchSubscription = search$.pipe(
   map(event => {
     return (event.target as HTMLInputElement).value;
   }),
@@ -30,3 +56,7 @@ search$.pipe(
   console.log(value);
 });
 
+const stopSubscription = stop$.subscribe(() => {
+  searchSubscription.unsubscribe();
+  stopSubscription.unsubscribe();
+});
