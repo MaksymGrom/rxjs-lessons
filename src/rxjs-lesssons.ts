@@ -1,5 +1,5 @@
 import {fromEvent, Observable} from 'rxjs';
-import {debounceTime, distinctUntilChanged, map} from 'rxjs/operators';
+import {debounceTime, distinctUntilChanged, map, takeUntil} from 'rxjs/operators';
 
 // const search$ = new Observable<Event>(observer => {
 //   const search = document.getElementById('search');
@@ -45,18 +45,14 @@ const stop$: Observable<Event> = fromEvent<Event>(
   'click'
 );
 
-const searchSubscription = search$.pipe(
+search$.pipe(
   map(event => {
     return (event.target as HTMLInputElement).value;
   }),
   debounceTime(500),
   map(value => value.length > 3 ? value : ''),
   distinctUntilChanged(),
+  takeUntil(stop$),
 ).subscribe(value => {
   console.log(value);
-});
-
-const stopSubscription = stop$.subscribe(() => {
-  searchSubscription.unsubscribe();
-  stopSubscription.unsubscribe();
 });
